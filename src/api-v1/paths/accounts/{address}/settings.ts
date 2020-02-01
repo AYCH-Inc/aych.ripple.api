@@ -5,12 +5,13 @@ import { RippleAPI } from "ripple-lib";
 import { Request, NextFunction } from "express";
 import { Operations, ValidatableResponse } from "../../../../types";
 import { finishRes } from "../../../../finishRes";
-import config from '../../../../../.secret_config';
+import { getConfig } from "../../../../config";
 import { ERRORS } from "../../../../errors";
+const config = getConfig();
 
 export default function(api: RippleAPI, log: Function): Operations {
 
-  async function GET(req: Request, res: ValidatableResponse, _next: NextFunction): Promise<void> {
+  async function get(req: Request, res: ValidatableResponse, _next: NextFunction): Promise<void> {
     const parameters = Object.assign({},
       {'ledger_index': 'current'}, // default to 'current' (in-progress) ledger
       req.query,
@@ -28,8 +29,7 @@ export default function(api: RippleAPI, log: Function): Operations {
       }));
     }).catch(error => {
       const status = error.message === 'Account not found.' ? 404 : 400;
-      const message = error.data && error.data.error_message ? error.data.error_message :
-                      error.name || 'Error'
+      const message = error.data && error.data.error_message ? error.data.error_message : error.name || 'Error';
       if (error.data && error.name) {
         error.data.name = error.name // e.g. "RippledError"
       }
@@ -45,7 +45,7 @@ export default function(api: RippleAPI, log: Function): Operations {
     });
   }
 
-  async function POST(req: Request, res: ValidatableResponse, _next: NextFunction): Promise<void> {
+  async function post(req: Request, res: ValidatableResponse, _next: NextFunction): Promise<void> {
     const address = req.params.address; // TODO: parse X Address
     const settings = req.body.settings; // TODO: validate
     // const instructions = ...; // TODO: add this in the future, if use cases require it (for multisigning?)
@@ -91,7 +91,7 @@ export default function(api: RippleAPI, log: Function): Operations {
   }
 
   const operations = {
-    GET, POST
+    get, post
   };
 
   return operations as Operations;

@@ -7,7 +7,7 @@ import { finishRes } from "../../../../finishRes";
 import { ERRORS } from "../../../../errors";
 
 export default function(api: RippleAPI, log: Function): Operations {
-  async function GET(req: Request, res: ValidatableResponse, _next: NextFunction): Promise<void> {
+  async function get(req: Request, res: ValidatableResponse, _next: NextFunction): Promise<void> {
     const options = Object.assign({},
       req.query
     );
@@ -42,8 +42,7 @@ export default function(api: RippleAPI, log: Function): Operations {
       // e.g. ValidationError: instance.options.minLedgerVersion is not exactly one from [subschema 0],[subschema 1]
 
       const status = error.message === 'Account not found.' ? 404 : 400;
-      const message = error.data && error.data.error_message ? error.data.error_message :
-                      error.name || 'Error'
+      const message = error.data && error.data.error_message ? error.data.error_message : error.name || 'Error';
       if (error.data && error.name) {
         error.data.name = error.name // e.g. "RippledError"
       }
@@ -60,7 +59,7 @@ export default function(api: RippleAPI, log: Function): Operations {
   }
 
   const operations = {
-    GET
+    get
   };
 
   return operations as Operations;

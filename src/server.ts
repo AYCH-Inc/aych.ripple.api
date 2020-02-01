@@ -1,7 +1,7 @@
 // Usage: node dist/server.js 3000
 //   Replace 3000 with the desired port
 
-import '@babel/polyfill'; // For async functions
+import { debuglog } from 'util';
 import express, { Request, Response, NextFunction, Application } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -12,15 +12,19 @@ import { ERRORS } from './errors';
 
 interface ServerOptions {
   rippleApiService: RippleApiService;
+  debuglog?: typeof debuglog;
 }
 
 export class Server {
-  private pathDebug: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  private serverDebug: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  private pathDebug: ReturnType<typeof debuglog>;
+  private serverDebug: ReturnType<typeof debuglog>;
   private app: express.Application;
 
   public constructor(options: ServerOptions) {
     const rippleApiService = options.rippleApiService;
+    this.serverDebug = (options.debuglog || debuglog)('server');
+    this.pathDebug = (options.debuglog || debuglog)('paths');
+    
     this.app = express();
 
     // Use first: simple response logger
@@ -48,9 +52,10 @@ export class Server {
       apiDoc: './api-doc.yml',
       dependencies: {
         api: rippleApiService.api, // RippleAPI instance
-        log: this.pathHandlerLog
+        log: this.pathDebug
       },
-      paths: path.resolve(__dirname, '../dist/api-v1/paths/'), // Only supports .js files, not .ts
+      paths: path.resolve(__dirname, '../dist/api-v1/paths/'), 
+      pathsIgnore: new RegExp('\.(spec|test)$'),
       promiseMode: true // Required to use promises in operations
     });
 
@@ -81,7 +86,7 @@ export class Server {
       res.status(status).json(err);
     });
 
-    this.app.use(function(req, res, next){
+    this.app.use(function(req, res, _next){
       res.status(404);
       const error: any = {}
       if (req.path.startsWith('/v1') === false) {
@@ -96,18 +101,6 @@ export class Server {
       res.send({ message: 'Not found', errors: [error] });
     });
   }
-
-  public setDebuglog(debuglog: Function): void {
-    // Set NODE_DEBUG=server for debug logs
-    this.serverDebug = debuglog('server');
-
-    this.pathDebug = debuglog('paths');
-  }
-
-  // Must use arrow function to preserve `this`
-  private pathHandlerLog = (...args: string[]) => {
-    this.pathDebug(...args);
-  };
 
   public listen(): Promise<number> {
     return new Promise((resolve) => {

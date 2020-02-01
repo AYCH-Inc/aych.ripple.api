@@ -3,14 +3,15 @@
 import { RippleAPI } from "ripple-lib";
 import { Request, NextFunction } from "express";
 import { Operations, ValidatableResponse } from "../../types";
-import config from '../../../.secret_config';
+import { getConfig } from "../../config";
 import { Payment } from "ripple-lib/dist/npm/transaction/payment";
 import { Instructions } from "ripple-lib/dist/npm/transaction/types";
 import { finishRes } from "../../finishRes";
 import { ERRORS } from "../../errors";
+const config = getConfig();
 
 export default function(api: RippleAPI, log: Function): Operations {
-  async function POST(req: Request, res: ValidatableResponse, _next: NextFunction): Promise<void> {
+  async function post(req: Request, res: ValidatableResponse, _next: NextFunction): Promise<void> {
     // TODO: parse X Address
     const address = req.body.payment.source_address;
     const accountWithSecret = config.accounts[address];
@@ -135,7 +136,7 @@ export default function(api: RippleAPI, log: Function): Operations {
   }
 
   const operations = {
-    POST
+    post
   };
 
   return operations as Operations;
