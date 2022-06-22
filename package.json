@@ -41,7 +41,7 @@
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "express-openapi": "^4.6.5",
-    "got": "^9.6.0",
+    "got": "^11.8.5",
     "ripple-lib": "^1.6.3-beta.1",
     "source-map-support": "^0.5.12",
     "strip-json-comments": "^3.0.1"
